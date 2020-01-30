@@ -6,26 +6,48 @@ public static class Minesweeper
 {
     public static string[] Annotate(string[] input)
     {
+        if (input == Array.Empty<string>()) return Array.Empty<string>();
         var rowsWithMines = new List<int>();
-        input.Where((s, i) => 
+        int count = 0;
+        input.ToList().ForEach(s => 
         {
             if(s.Contains('*')) 
-                rowsWithMines.Add(i);
-            return true;
+                rowsWithMines.Add(count);
+            count++;
         });
         var allCells = input.Select(x => x.ToCharArray()).ToList();
         var cellsWithMines = new List<(int row, int column)>();
         rowsWithMines.ForEach(x => 
         {
-            allCells[x].Where((y, i) => 
+            count = 0;
+            allCells[x].ToList().ForEach(y => 
             {
                 if (y == '*')
-                    cellsWithMines.Add((x, i));
-                return true;
+                    cellsWithMines.Add((x, count));
+                count++;
             });
         });
-        var rows = input.Length;
-        return input == Array.Empty<string>() ? Array.Empty<string>() : allCells.Select(x => new string(x)).ToArray();
+        
+        var newCells = allCells.Select((cellRow, rowIndex) => 
+        {
+            return cellRow.Select<char, char>((cell, columnIndex) => 
+            {
+                if (cell == '*') return '*';
+                int adjacentMineCount = 0;
+                if (cellsWithMines.Contains((rowIndex - 1, columnIndex - 1))) adjacentMineCount++;
+                if (cellsWithMines.Contains((rowIndex - 1, columnIndex))) adjacentMineCount++;
+                if (cellsWithMines.Contains((rowIndex - 1, columnIndex + 1))) adjacentMineCount++;
+                if (cellsWithMines.Contains((rowIndex, columnIndex - 1))) adjacentMineCount++;
+                if (cellsWithMines.Contains((rowIndex, columnIndex + 1))) adjacentMineCount++;
+                if (cellsWithMines.Contains((rowIndex + 1, columnIndex - 1))) adjacentMineCount++;
+                if (cellsWithMines.Contains((rowIndex + 1, columnIndex))) adjacentMineCount++;
+                if (cellsWithMines.Contains((rowIndex + 1, columnIndex + 1))) adjacentMineCount++;
+                
+                return adjacentMineCount == 0 ? ' ' : char.Parse(adjacentMineCount.ToString());
+            });
+        });
+
+        return newCells.Select(x => new string(x.ToArray())).ToArray();
         
     }
 }
